@@ -412,7 +412,7 @@ scheduler(void)
     //       addToQueueEnd(mPriority, mPid);
     //     }
     //   }
-
+    // 
     // }
 
 
@@ -428,6 +428,8 @@ scheduler(void)
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
+
+      //TODO: remove process from MLQ at this point
 
       swtch(&(c->scheduler), p->context);
       switchkvm();
@@ -782,7 +784,7 @@ getpinfo(struct pstat *ps)
       return -1;
 
     struct proc* p;
-    acquire(&ptable.lock);
+    // acquire(&ptable.lock);
     for(int i = 0; i < NPROC; i++) {
         p = &ptable.proc[i];
 
@@ -792,13 +794,15 @@ getpinfo(struct pstat *ps)
         ps->state[i] = p->state;
         //TODO: check if ticks filled correctly
         for(int j = 0; j < NLAYER; j++) {
-            ps->ticks[i][j] += p->ticksUsedAtLevel[j];
+            ps->ticks[i][j] = p->ticksUsedAtLevel[j];
+            ps->qtail[i][j] = p->qtail[j];
         }
-        //TODO: check if qtail filled correctly
-        for (int k = 0; k < NLAYER; k++) {
-            ps->qtail[i][k] += p->qtail[k];
-        }
+        // //TODO: check if qtail filled correctly
+        // for (int k = 0; k < NLAYER; k++) {
+        //     ps->qtail[i][k] = p->qtail[k];
+        // }
     }
-    release(&ptable.lock);
+    // release(&ptable.lock);
 
     return 0; 
+}

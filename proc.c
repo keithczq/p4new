@@ -47,7 +47,7 @@ getLastIndex(int priority) {
 }
 
 struct
-proc* getProcess(int pid) {
+proc* getProc(int pid) {
     struct proc *p;
     
     acquire(&ptable.lock);
@@ -59,6 +59,24 @@ proc* getProcess(int pid) {
     release(&ptable.lock);
     
     return 0;
+}
+
+int
+getProcIndex(int pid) {
+    int index = -1;
+    struct *currProc;
+
+    acquire(&ptable.lock);
+    for (int i = 0; i < NPROC; i++) {
+        currProc = &ptable.proc[i];
+        if (currProc->pid == pid) {
+            index = i;
+            break;
+        }
+    }
+    release(&ptable.lock);
+
+    return index;
 }
 
 // Must be called with interrupts disabled
@@ -569,46 +587,74 @@ procdump(void)
 }
 
 int
-setpri(int PID, int pri)
-{
-    //Check priority
-    if (pri < 0 || pri > 3) return -1;
+deleteFromQueue(int pri, int pid) {
 
-    //Check valid PID and set priority if present
-    struct proc *currProc, *foundProc, *nextProc;
-    int index = 0;
+    //remove pid from current position in queue
+    int currPid, nextPid, index;
     for (int i = 0; i < NPROC; i++) {
-        currProc = &ptable.proc[i];
-        if (currProc->pid == PID) {
-            currProc->priority = pri;
+        currPid = queues[pri][i];
+        if (currPid == pid) {
             index = i;
-            foundProc = currProc;
             goto found;
         }
     }
     return -1;
 
-    //Code block will move the process that is being updated to
-    //the back of the ptable
     found:
+    //shift all indexes to the left
     for (int j = index; j < NPROC; j++) {
-        //If we reach the end of array, just simply set last index to
-        if (j == (NPROC - 1)) {
-            ptable.proc[j] = *foundProc;
+        nextPid = queues[pri][j+1];
+        //Found the last allocated process in queue, hence stop shifting
+        if (nextPid == 0) {
+            queues[pri][i] = 0;
             break;
         }
-        currProc = &ptable.proc[j];
-        nextProc = &ptable.proc[j+1];
-        //Found the last allocated process in ptable
-        if (nextProc->state == UNUSED) {
-            ptable.proc[j] = *foundProc;
-            foundProc->qtail[foundProc->priority]++;
-        }
-        //If not, move next process to current process
+        //Shift
         else {
-            ptable.proc[j] = *nextProc;
+            queues[pri][j] = nextPid;
         }
     }
+    return 0;
+}
+
+int
+addToQueueEnd(int pri, int pid) {
+    int lastIndex = getLastIndex(pri);
+    if (lastIndex != -1) {
+        queues[pri][lastIndex] = pid;
+        return 0;
+    }
+    return -1;
+}
+
+int
+setpri(int pid, int pri)
+{
+    //Check priority
+    if (pri < 0 || pri > 3) return -1;
+
+    //Check valid PID and set priority if present
+    int index = getProcIndex(pid);
+    if (index == -1) return -1;
+    struct proc *foundProc = &ptable.proc[index];
+
+    if (deleteFromQueue(
+            foundProc->priority, foundProc->pid) == -1)
+        return -1;
+
+    //update priority based on input arg
+    //NOTE: priority will not change if input was the same
+    //hence when we add to queue at next step, it might be
+    //added at either the new queue or the original queue
+    foundProc->priority = pri;
+
+    //add to end of queue at new/original queue
+    //and update the qtail at the new/original queue
+    if (addToQueueEnd(
+            foundProc->priority, foundProc->pid) == -1)
+        return -1;
+    foundProc->qtail[foundProc->priority]++;
+
     return 0;
 }
 

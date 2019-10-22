@@ -64,7 +64,7 @@ proc* getProc(int pid) {
 int
 getProcIndex(int pid) {
     int index = -1;
-    struct *currProc;
+    struct proc *currProc;
 
     acquire(&ptable.lock);
     for (int i = 0; i < NPROC; i++) {
@@ -601,12 +601,17 @@ deleteFromQueue(int pri, int pid) {
     return -1;
 
     found:
+    if (index + 1 >= NPROC) {
+        queues[pri][j] = 0;
+        return 0;
+    }
+
     //shift all indexes to the left
     for (int j = index; j < NPROC; j++) {
         nextPid = queues[pri][j+1];
         //Found the last allocated process in queue, hence stop shifting
         if (nextPid == 0) {
-            queues[pri][i] = 0;
+            queues[pri][j] = 0;
             break;
         }
         //Shift

@@ -607,7 +607,7 @@ deleteFromQueue(int pri, int pid) {
 //    }
 
     //shift all indexes to the left
-    for (int j = index; j < NPROC -1; j++) {
+    for (int j = index; j < NPROC; j++) {
         nextPid = queues[pri][j+1];
         //Found the last allocated process in queue, hence stop shifting
         if (nextPid == 0) {
@@ -619,7 +619,6 @@ deleteFromQueue(int pri, int pid) {
             queues[pri][j] = nextPid;
         }
     }
-
     return 0;
 }
 

@@ -22,9 +22,9 @@ int main( int argc, const char* argv[] )
         exit(1);
     }
     
-    int timeslice = atoi(argv[1]);
-    int iters = atoi(argv[2]);
-    char jobname[50] = argv[3];
+//    int timeslice = atoi(argv[1]);
+//    int iters = atoi(argv[2]);
+//    char jobname[50] = argv[3];
 
 
 

@@ -25,6 +25,7 @@ int queues[4][NPROC];
 
 static void wakeup1(void *chan);
 int setpri(int PID, int pri);
+int addToQueueEnd(int pri, int pid);
 
 void
 pinit(void)
@@ -256,6 +257,8 @@ fork(void)
   np->parent = curproc;
   *np->tf = *curproc->tf;
 
+  np->priority = curproc->priority;
+
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
 
@@ -271,6 +274,9 @@ fork(void)
   acquire(&ptable.lock);
 
   np->state = RUNNABLE;
+  
+  //add child to end of queue
+  addToQueueEnd(np->priority, np->pid);
 
   release(&ptable.lock);
 
@@ -378,12 +384,37 @@ void
 scheduler(void)
 {
   struct proc *p;
+  // struct proc *currProc;
   struct cpu *c = mycpu();
   c->proc = 0;
   
   for(;;){
     // Enable interrupts on this processor.
     sti();
+
+    //added!!!   
+    // //check ptable and add to queue if missing
+    // int flag = 0;
+    // int mPriority = -1;
+    // int mPid = -1;
+    // for(currProc = ptable.proc; currProc < &ptable.proc[NPROC]; p++){
+    //   if(currProc->state == RUNNABLE) {
+    //     //Check to see if it exists in queue, if not add it
+    //     mPriority = currProc->priority;
+    //     mPid = currProc->pid;
+    //     for (int i = 0; i < NPROC; i++) {
+    //       if (queues[currProc->priority][i] == currProc->pid) {
+    //         flag = 1;
+    //         break;
+    //       }
+    //     }
+    //     if (flag == 0) {
+    //       addToQueueEnd(mPriority, mPid);
+    //     }
+    //   }
+
+    // }
+
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
@@ -436,12 +467,24 @@ sched(void)
   mycpu()->intena = intena;
 }
 
+void
+updateAndCheckTicks() {
+  myproc()->ticksUsedAtLevel[myproc()->priority]++;
+  myproc()->ticksUsed++;
+  if (myproc()->priority < NLAYER - 1 
+    && myproc()->ticksUsed >= ticksLimit[myproc()->priority]) {
+      myproc()->ticksUsed = 0;
+      setpri(myproc()->pid, myproc()->priority);
+  }
+}
+
 // Give up the CPU for one scheduling round.
 void
 yield(void)
 {
   acquire(&ptable.lock);  //DOC: yieldlock
   myproc()->state = RUNNABLE;
+  updateAndCheckTicks();
   sched();
   release(&ptable.lock);
 }
@@ -721,6 +764,9 @@ fork2(int pri)
 
     np->state = RUNNABLE;
 
+    //add child to end of queue
+    addToQueueEnd(np->priority, np->pid);
+
     release(&ptable.lock);
 
     return pid;
@@ -732,6 +778,9 @@ getpinfo(struct pstat *ps)
     //Because your MLQ implementation is all in the kernel level, you need to
     // extract useful information for each process by creating this system call
     // so as to better test whether your implementation works as expected.
+    if (ps == 0)
+      return -1;
+
     struct proc* p;
     acquire(&ptable.lock);
     for(int i = 0; i < NPROC; i++) {
@@ -751,5 +800,5 @@ getpinfo(struct pstat *ps)
         }
     }
     release(&ptable.lock);
-    return -1;
-}
+
+    return 0; 

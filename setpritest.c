@@ -6,6 +6,7 @@
 #include "user.h"
 #include "stat.h"
 
+
 void swap(char *first, char *last) {
     char x = *first; *first = *last; *last = x;
 }
@@ -68,53 +69,5 @@ int main(int argc, char* argv[] ) {
     printf(1, "new pid: %d\n", pid);
     printf(1, "new priority: %d\n", getpri(pid));
 
-//    char fileName[10];
-//    char buffer[10];
-//    for (int i = 0; i < my_atoi(argv[1]); i++) {
-//        strcpy(fileName, "ofile");
-//        my_itoa(i, buffer);
-//        strcat(buffer, fileName);
-//        int filedesc = open(fileName, O_RDWR | O_CREATE);
-//        if (filedesc < 0) {
-//            printf(1, "error opening/creating file: %s\n", fileName);
-//            exit();
-//        }
-//    }
-//
-//    // Loop to close file numbers specified
-//    int numToClose = argc - 2;
-//    if ((numToClose) > 0) {
-//        for (int j = 2; j < argc; j++) {
-//            close(my_atoi(argv[j]) + 3);
-//
-//            strcpy(fileName, "ofile");
-//            strcpy(buffer, argv[j]);
-//            strcat(buffer, fileName);
-//
-//            if (unlink(fileName) < 0){
-//                printf(1, "error faied to delete %s\n", fileName);
-//                exit();
-//            }
-//        }
-//    }
-//
-//    printf(1, "%d %d\n", getofilecnt(getpid()), getofilenext(getpid()));
     exit();
 }
-
-// original
-//    // Loop to open number of files specified
-//    char fileName[10];
-//    char buffer[10];
-//    int openFileCount = my_atoi(argv[0]);
-//    for (int i = 0; i < openFileCount; i++) {
-//        strcpy(fileName, "ofile");
-//        my_itoa(i, buffer);
-//        strcat(buffer, fileName);
-//        printf(1, "creating %s...\n", fileName); //FIXME
-//        int filedesc = open(fileName, O_RDWR | O_CREATE);
-//        if (filedesc < 0) {
-//            printf(1, "error opening/creating file %s\n", fileName);
-//            exit();
-//        }
-//    }

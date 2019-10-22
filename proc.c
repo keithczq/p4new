@@ -619,7 +619,7 @@ deleteFromQueue(int pri, int pid) {
             queues[pri][j] = nextPid;
         }
     }
-    
+
     return 0;
 }
 

@@ -5,6 +5,15 @@
 #include "user.h"
 #include "fcntl.h"
 #include "syscall.h"
+
+int atoi(char* str) {
+    int num = 0;
+    for (int i = 0; str[i] != '\0'; i++) {
+        num = num * 10 + str[i] - '0';
+    }
+    return num;
+}
+
 int main( int argc, const char* argv[] )
 {
     if (argc != 6)

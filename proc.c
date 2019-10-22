@@ -46,6 +46,19 @@ getLastIndex(int priority) {
   return index;
 }
 
+struct
+proc* getProcess(int pid) {
+    acquire(&ptable.lock);
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+        if (p->pid == pid) {
+            return p;
+        }
+    }
+    release(&ptable.lock);
+    
+    return 0;
+}
+
 // Must be called with interrupts disabled
 int
 cpuid() {

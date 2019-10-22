@@ -48,6 +48,8 @@ getLastIndex(int priority) {
 
 struct
 proc* getProcess(int pid) {
+    struct proc *p;
+    
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
         if (p->pid == pid) {

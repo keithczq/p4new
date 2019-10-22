@@ -651,11 +651,11 @@ fork2(int pri)
 
     pid = np->pid;
 
-    // acquire(&ptable.lock);
+    acquire(&ptable.lock);
 
     np->state = RUNNABLE;
 
-    // release(&ptable.lock);
+    release(&ptable.lock);
 
     return pid;
 }
